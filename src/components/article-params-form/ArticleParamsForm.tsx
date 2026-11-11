@@ -12,6 +12,7 @@ import { Select } from '@/ui/select';
 import { useOutsideClickClose } from '@/ui/select/hooks/useOutsideClickClose';
 import { Separator } from '@/ui/separator';
 import { Text } from '@/ui/text';
+import { clsx } from 'clsx';
 import { useState, useRef, type FormEvent } from 'react';
 import { ArrowButton } from 'src/ui/arrow-button';
 import { Button } from 'src/ui/button';
@@ -27,33 +28,42 @@ export const ArticleParamsForm = ({
   initialState,
   onApply,
 }: ArticleParamsFormProps): React.JSX.Element => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [articleState, setArticleState] = useState<ArticleStateType>(initialState);
-  const handleApply = (e: FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    onApply(articleState);
+  const [isParamsPanelOpen, setIsParamsPanelOpen] = useState(false);
+  const [formParamsState, setFormParamsState] = useState<ArticleStateType>(initialState);
+  const handleChange = <K extends keyof ArticleStateType>(
+    field: K,
+    value: ArticleStateType[K]
+  ): void => {
+    setFormParamsState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+  const handleApply = (event: FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
+    onApply(formParamsState);
   };
   const handleReset = (): void => {
-    setArticleState(defaultArticleState);
+    setFormParamsState(defaultArticleState);
     onApply(defaultArticleState);
   };
   const rootRef = useRef<HTMLDivElement>(null);
-  const toggleOpen = (): void => setIsOpen((prev) => !prev);
+  const toggleOpen = (): void => setIsParamsPanelOpen((prev) => !prev);
 
   useOutsideClickClose({
-    isOpen,
+    isOpen: isParamsPanelOpen,
     rootRef,
     onClose: toggleOpen,
-    onChange: setIsOpen,
+    onChange: setIsParamsPanelOpen,
   });
 
   return (
     <div ref={rootRef}>
-      <ArrowButton isOpen={isOpen} onClick={toggleOpen} />
+      <ArrowButton isOpen={isParamsPanelOpen} onClick={toggleOpen} />
       <aside
-        className={
-          isOpen ? `${styles.container} ${styles.container_open}` : styles.container
-        }
+        className={clsx(styles.container, {
+          [styles.container_open]: isParamsPanelOpen,
+        })}
       >
         <form className={styles.form} onSubmit={handleApply} onReset={handleReset}>
           <Text as="h2" size={31} weight={800} uppercase>
@@ -62,46 +72,38 @@ export const ArticleParamsForm = ({
           <Select
             title="Шрифт"
             options={fontFamilyOptions}
-            selected={articleState.fontFamilyOption}
+            selected={formParamsState.fontFamilyOption}
             placeholder="Выбери шрифт"
-            onChange={(option) =>
-              setArticleState((s) => ({ ...s, fontFamilyOption: option }))
-            }
+            onChange={(option) => handleChange('fontFamilyOption', option)}
           />
           <RadioGroup
             name="fontSize"
             title="Размер шрифта"
             options={fontSizeOptions}
-            selected={articleState.fontSizeOption}
-            onChange={(option) =>
-              setArticleState((s) => ({ ...s, fontSizeOption: option }))
-            }
+            selected={formParamsState.fontSizeOption}
+            onChange={(option) => handleChange('fontSizeOption', option)}
           />
 
           <Select
             title="Цвет шрифта"
             options={fontColors}
-            selected={articleState.fontColor}
-            onChange={(option) => setArticleState((s) => ({ ...s, fontColor: option }))}
+            selected={formParamsState.fontColor}
+            onChange={(option) => handleChange('fontColor', option)}
           />
 
           <Separator />
           <Select
             title="Цвет фона"
             options={backgroundColors}
-            selected={articleState.backgroundColor}
-            onChange={(option) =>
-              setArticleState((s) => ({ ...s, backgroundColor: option }))
-            }
+            selected={formParamsState.backgroundColor}
+            onChange={(option) => handleChange('backgroundColor', option)}
           />
 
           <Select
             title="Ширина контента"
             options={contentWidthArr}
-            selected={articleState.contentWidth}
-            onChange={(option) =>
-              setArticleState((s) => ({ ...s, contentWidth: option }))
-            }
+            selected={formParamsState.contentWidth}
+            onChange={(option) => handleChange('contentWidth', option)}
           />
           <div className={styles.bottomContainer}>
             <Button title="Сбросить" htmlType="reset" type="clear" />

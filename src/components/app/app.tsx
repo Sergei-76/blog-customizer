@@ -27,10 +27,7 @@ export const App = (): React.JSX.Element => {
         } as CSSProperties
       }
     >
-      <ArticleParamsForm
-        initialState={articleState}
-        onApply={(newState) => setArticleState(newState)}
-      />
+      <ArticleParamsForm initialState={articleState} onApply={setArticleState} />
       <Article />
     </main>
   );
